@@ -1,6 +1,7 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/core'
 
+import React from 'react'
 import {Routes, Route, Link as RouterLink, useMatch} from 'react-router-dom'
 import {ErrorBoundary} from 'react-error-boundary'
 import {Button, ErrorMessage, FullPageErrorFallback} from './components/lib'
@@ -12,6 +13,7 @@ import {DiscoverBooksScreen} from './screens/discover'
 import {BookScreen} from './screens/book'
 import {NotFoundScreen} from './screens/not-found'
 import {logout, selectUser} from 'reducers/authSlice'
+import {fetchListItems} from 'reducers/listItemsSlice'
 import {useSelector, useDispatch} from 'react-redux'
 
 function ErrorFallback({error}) {
@@ -32,6 +34,11 @@ function ErrorFallback({error}) {
 function AuthenticatedApp() {
   const user = useSelector(selectUser)
   const dispatch = useDispatch()
+
+  React.useEffect(() => {
+    dispatch(fetchListItems())
+  }, [dispatch])
+
   return (
     <ErrorBoundary FallbackComponent={FullPageErrorFallback}>
       <div
@@ -44,7 +51,11 @@ function AuthenticatedApp() {
         }}
       >
         {user.username}
-        <Button variant="secondary" css={{marginLeft: '10px'}} onClick={() => dispatch(logout())}>
+        <Button
+          variant="secondary"
+          css={{marginLeft: '10px'}}
+          onClick={() => dispatch(logout())}
+        >
           Logout
         </Button>
       </div>

@@ -1,13 +1,14 @@
 /** @jsx jsx */
 import {jsx} from '@emotion/core'
 
-import {useListItems} from 'utils/list-items'
 import {BookListUL} from './lib'
 import {BookRow} from './book-row'
 import {Profiler} from './profiler'
+import {useSelector} from 'react-redux'
+import {selectAllListItems} from 'reducers/listItemsSlice'
 
 function ListItemList({filterListItems, noListItems, noFilteredListItems}) {
-  const listItems = useListItems()
+  const listItems = useSelector(selectAllListItems)
 
   const filteredListItems = listItems.filter(filterListItems)
 

@@ -2,10 +2,14 @@
 import {jsx} from '@emotion/core'
 
 import * as React from 'react'
-import {useUpdateListItem} from 'utils/list-items'
 import {FaStar} from 'react-icons/fa'
 import * as colors from 'styles/colors'
 import {ErrorMessage} from 'components/lib'
+import {useSelector, useDispatch} from 'react-redux'
+import {
+  updateListItem,
+  selectError
+} from 'reducers/listItemsSlice'
 
 const visuallyHiddenCSS = {
   border: '0',
@@ -19,9 +23,9 @@ const visuallyHiddenCSS = {
 }
 
 function Rating({listItem}) {
+  const dispatch = useDispatch()
+  const error = useSelector(selectError)
   const [isTabbing, setIsTabbing] = React.useState(false)
-
-  const [mutate, {error, isError}] = useUpdateListItem()
 
   React.useEffect(() => {
     function handleKeyDown(event) {
@@ -47,7 +51,7 @@ function Rating({listItem}) {
           value={ratingValue}
           checked={ratingValue === listItem.rating}
           onChange={() => {
-            mutate({id: listItem.id, rating: ratingValue})
+            dispatch(updateListItem({id: listItem.id, rating: ratingValue}))
           }}
           css={[
             visuallyHiddenCSS,
@@ -101,7 +105,7 @@ function Rating({listItem}) {
       }}
     >
       <span css={{display: 'flex'}}>{stars}</span>
-      {isError ? (
+      {error ? (
         <ErrorMessage
           error={error}
           variant="inline"

@@ -53,7 +53,7 @@ export const booksSlice = createSlice({
     },
     [fetchBooksByQuery.rejected]: (state, action) => {
       state.status = 'failed'
-      state.error = action.error
+      state.error = action.payload
     },
     [fetchBookById.fulfilled]: booksAdapter.addOne
   }
