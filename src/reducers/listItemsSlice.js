@@ -70,7 +70,7 @@ export const listItemsSlice = createSlice({
       listItemsAdapter.setAll(state, action.payload)
     },
     [createListItem.fulfilled]: listItemsAdapter.addOne,
-    //[removeListItem.fulfilled]: listItemsAdapter.removeOne,
+    [removeListItem.fulfilled]: listItemsAdapter.removeOne,
     [updateListItem.fulfilled]: (state, action) => {
       listItemsAdapter.upsertOne(state, action.payload)
     },

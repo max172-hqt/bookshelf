@@ -6,9 +6,7 @@ import debounceFn from 'debounce-fn'
 import {FaRegCalendarAlt} from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
 import {useParams} from 'react-router-dom'
-//import {useBook} from 'utils/books'
 import {formatDate} from 'utils/misc'
-import {useListItem, useUpdateListItem} from 'utils/list-items'
 import * as mq from 'styles/media-queries'
 import * as colors from 'styles/colors'
 import {Spinner, Textarea, ErrorMessage} from 'components/lib'
@@ -16,8 +14,14 @@ import {Rating} from 'components/rating'
 import {Profiler} from 'components/profiler'
 import {StatusButtons} from 'components/status-buttons'
 import {useSelector, useDispatch} from 'react-redux'
-import {fetchBookById, selectBookById, selectBookFetchingStatus} from 'reducers/booksSlice'
+import {
+  fetchBookById,
+  selectBookById,
+  selectBookFetchingStatus,
+} from 'reducers/booksSlice'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
+import {selectListItemByBookId, updateListItem} from 'reducers/listItemsSlice'
+import {useAsync} from 'utils/hooks'
 
 const loadingBook = {
   title: 'Loading...',
@@ -31,8 +35,9 @@ const loadingBook = {
 function BookScreen() {
   const {bookId} = useParams()
   const dispatch = useDispatch()
-  const book = useSelector(state => selectBookById(state, bookId)) ?? loadingBook
-  const listItem = useListItem(bookId)
+  const book =
+    useSelector(state => selectBookById(state, bookId)) ?? loadingBook
+  const listItem = useSelector(state => selectListItemByBookId(state, book.id))
   const isLoading = useSelector(selectBookFetchingStatus) === 'pending'
 
   const {title, author, coverImageUrl, publisher, synopsis} = book
@@ -94,9 +99,7 @@ function BookScreen() {
             </p>
           </div>
         </div>
-        {!isLoading && listItem ? (
-          <NotesTextarea listItem={listItem} />
-        ) : null}
+        {!isLoading && listItem ? <NotesTextarea listItem={listItem} /> : null}
       </div>
     </Profiler>
   )
@@ -121,15 +124,23 @@ function ListItemTimeframe({listItem}) {
 }
 
 function NotesTextarea({listItem}) {
-  const [mutate, {error, isError, isLoading}] = useUpdateListItem()
+  const {isLoading, isError, error, run, reset} = useAsync()
 
-  const debouncedMutate = React.useMemo(
-    () => debounceFn(mutate, {wait: 300}),
-    [mutate],
+  const dispatch = useDispatch()
+
+  // TODO: Debounce and loading state
+  const handleUpdateListItem = React.useCallback(
+    updates => dispatch(updateListItem(updates)),
+    [dispatch],
+  )
+
+  const debouncedUpdate = React.useMemo(
+    () => debounceFn(handleUpdateListItem, {wait: 300}),
+    [handleUpdateListItem],
   )
 
   function handleNotesChange(e) {
-    debouncedMutate({id: listItem.id, notes: e.target.value})
+    debouncedUpdate({id: listItem.id, notes: e.target.value})
   }
 
   return (
