@@ -5,6 +5,11 @@ import ReactDOM from 'react-dom'
 import {Profiler} from 'components/profiler'
 import {App} from './app'
 import {AppProviders} from './context'
+import store from 'store'
+import {fetchUser} from 'reducers/authSlice'
+
+// We can run this before rendering
+store.dispatch(fetchUser())
 
 loadDevTools(() => {
   ReactDOM.render(

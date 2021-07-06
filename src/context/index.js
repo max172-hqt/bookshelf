@@ -3,7 +3,7 @@ import {BrowserRouter as Router} from 'react-router-dom'
 import {ReactQueryConfigProvider} from 'react-query'
 import {AuthProvider} from './auth-context'
 import store from 'store'
-import { Provider } from 'react-redux'
+import {Provider} from 'react-redux'
 
 // TODO remove later
 const queryConfig = {
@@ -18,15 +18,16 @@ const queryConfig = {
   },
 }
 
+
 function AppProviders({children}) {
   return (
     // TODO remove react query later
     <Provider store={store}>
-    <ReactQueryConfigProvider config={queryConfig}>
-      <Router>
-        <AuthProvider>{children}</AuthProvider>
-      </Router>
-    </ReactQueryConfigProvider>
+      <ReactQueryConfigProvider config={queryConfig}>
+        <Router>
+          <AuthProvider>{children}</AuthProvider>
+        </Router>
+      </ReactQueryConfigProvider>
     </Provider>
   )
 }

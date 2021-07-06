@@ -5,16 +5,19 @@ import * as React from 'react'
 import {Input, Button, Spinner, FormGroup, ErrorMessage} from './components/lib'
 import {Modal, ModalContents, ModalOpenButton} from './components/modal'
 import {Logo} from './components/logo'
-import {useAuth} from './context/auth-context'
-import {useAsync} from './utils/hooks'
+import {login, register, selectError, selectIsLoading} from 'reducers/authSlice'
+import {useSelector, useDispatch} from 'react-redux'
 
 function LoginForm({onSubmit, submitButton}) {
-  const {isLoading, isError, error, run} = useAsync()
+  const dispatch = useDispatch()
+  const isLoading = useSelector(selectIsLoading)
+  const error = useSelector(selectError)
+
   function handleSubmit(event) {
     event.preventDefault()
     const {username, password} = event.target.elements
 
-    run(
+    dispatch(
       onSubmit({
         username: username.value,
         password: password.value,
@@ -54,13 +57,14 @@ function LoginForm({onSubmit, submitButton}) {
           isLoading ? <Spinner css={{marginLeft: 5}} /> : null,
         )}
       </div>
-      {isError ? <ErrorMessage error={error} /> : null}
+      {error ? <ErrorMessage error={error} /> : null}
     </form>
   )
 }
 
 function UnauthenticatedApp() {
-  const {login, register} = useAuth()
+  //const {login, register} = useAuth()
+
   return (
     <div
       css={{
