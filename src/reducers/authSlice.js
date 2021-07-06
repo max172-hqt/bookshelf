@@ -9,6 +9,7 @@ const initialState = {
 }
 
 export const fetchUser = createAsyncThunk('auth/fetchUser', async () => {
+  // TODO: Bootstrap
   let user = null
 
   const token = await auth.getToken()
@@ -44,7 +45,7 @@ export const authSlice = createSlice({
       state.user = action.payload
     },
     [fetchUser.pending]: (state, action) => {
-      state.status = 'pending'
+      state.status = 'fetchingUser'
     },
     // Login
     [login.fulfilled]: (state, action) => {
@@ -87,3 +88,4 @@ export const selectUser = state => state.auth.user
 export const selectAuthToken = state => state.auth.user.token
 export const selectError = state => state.auth.error
 export const selectIsLoading = state => state.auth.status === 'pending'
+export const selectIsFetchingUser = state => state.auth.status === 'fetchingUser'
