@@ -6,7 +6,7 @@ import debounceFn from 'debounce-fn'
 import {FaRegCalendarAlt} from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
 import {useParams} from 'react-router-dom'
-import {useBook} from 'utils/books'
+//import {useBook} from 'utils/books'
 import {formatDate} from 'utils/misc'
 import {useListItem, useUpdateListItem} from 'utils/list-items'
 import * as mq from 'styles/media-queries'
@@ -15,13 +15,31 @@ import {Spinner, Textarea, ErrorMessage} from 'components/lib'
 import {Rating} from 'components/rating'
 import {Profiler} from 'components/profiler'
 import {StatusButtons} from 'components/status-buttons'
+import {useSelector, useDispatch} from 'react-redux'
+import {fetchBookById, selectBookById, selectBookFetchingStatus} from 'reducers/booksSlice'
+import bookPlaceholderSvg from 'assets/book-placeholder.svg'
+
+const loadingBook = {
+  title: 'Loading...',
+  author: 'loading...',
+  coverImageUrl: bookPlaceholderSvg,
+  publisher: 'Loading Publishing',
+  synopsis: 'Loading...',
+  loadingBook: true,
+}
 
 function BookScreen() {
   const {bookId} = useParams()
-  const book = useBook(bookId)
+  const dispatch = useDispatch()
+  const book = useSelector(state => selectBookById(state, bookId)) ?? loadingBook
   const listItem = useListItem(bookId)
+  const isLoading = useSelector(selectBookFetchingStatus) === 'pending'
 
   const {title, author, coverImageUrl, publisher, synopsis} = book
+
+  React.useEffect(() => {
+    dispatch(fetchBookById(bookId))
+  }, [dispatch, bookId])
 
   return (
     <Profiler id="Book Screen" metadata={{bookId, listItemId: listItem?.id}}>
@@ -63,7 +81,7 @@ function BookScreen() {
                   minHeight: 100,
                 }}
               >
-                {book.loadingBook ? null : <StatusButtons book={book} />}
+                {isLoading ? null : <StatusButtons book={book} />}
               </div>
             </div>
             <div css={{marginTop: 10, minHeight: 46}}>
@@ -76,7 +94,7 @@ function BookScreen() {
             </p>
           </div>
         </div>
-        {!book.loadingBook && listItem ? (
+        {!isLoading && listItem ? (
           <NotesTextarea listItem={listItem} />
         ) : null}
       </div>
