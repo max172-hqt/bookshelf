@@ -63,8 +63,6 @@ function LoginForm({onSubmit, submitButton}) {
 }
 
 function UnauthenticatedApp() {
-  //const {login, register} = useAuth()
-
   return (
     <div
       css={{

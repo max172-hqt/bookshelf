@@ -51,7 +51,7 @@ export const authSlice = createSlice({
     [login.pending]: (state, action) => {
       state.status = 'pending'
     },
-    [login.failed]: (state, action) => {
+    [login.rejected]: (state, action) => {
       state.status = 'failed'
       state.error = action.error.message
     },
@@ -59,6 +59,10 @@ export const authSlice = createSlice({
     [register.fulfilled]: (state, action) => {
       state.status = 'authenticated'
       state.user = action.payload
+    },
+    [register.rejected]: (state, action) => {
+      state.status = 'failed'
+      state.error = action.error
     },
     [register.pending]: (state, action) => {
       state.status = 'pending'
