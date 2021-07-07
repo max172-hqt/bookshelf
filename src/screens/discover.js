@@ -55,6 +55,7 @@ function DiscoverBooksScreen() {
   //}, [refetchBookSearchQuery])
   
   React.useEffect(() => {
+    console.log("here");
     dispatch(fetchBooksByQuery(query))
   }, [dispatch, query])
 

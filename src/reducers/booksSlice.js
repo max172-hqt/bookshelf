@@ -36,13 +36,17 @@ export const fetchBookById = createAsyncThunk(
       token,
     })
     return data.book
-  }
+  },
 )
 
 export const booksSlice = createSlice({
   name: 'books',
   initialState,
-  reducers: {},
+  reducers: {
+    booksAdded: (state, action) => {
+      booksAdapter.setAll(state, action.payload)
+    },
+  },
   extraReducers: {
     [fetchBooksByQuery.fulfilled]: (state, action) => {
       state.status = 'succeeded'
@@ -53,18 +57,22 @@ export const booksSlice = createSlice({
     },
     [fetchBooksByQuery.rejected]: (state, action) => {
       state.status = 'failed'
-      state.error = action.payload
+      state.error = action.error
     },
-    [fetchBookById.fulfilled]: booksAdapter.addOne
-  }
+    [fetchBookById.fulfilled]: booksAdapter.addOne,
+    [fetchBookById.rejected]: (state, action) => {
+      state.status = 'failed'
+      state.error = action.error
+    },
+  },
 })
 
 export default booksSlice.reducer
 
-export const {
-  selectAll: selectBooks,
-  selectById: selectBookById
-} = booksAdapter.getSelectors((state) => state.books)
+export const {booksAdded} = booksSlice.actions
+
+export const {selectAll: selectBooks, selectById: selectBookById} =
+  booksAdapter.getSelectors(state => state.books)
 
 //export const selectBooks = state => state.books.books
 export const selectError = state => state.books.error

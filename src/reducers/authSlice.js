@@ -1,4 +1,6 @@
 import {createSlice, createAsyncThunk} from '@reduxjs/toolkit'
+import {listItemsAdded} from './listItemsSlice'
+import {booksAdded} from './booksSlice'
 import {client} from 'utils/api-client'
 import * as auth from 'auth-provider'
 
@@ -8,17 +10,24 @@ const initialState = {
   error: null,
 }
 
-export const fetchUser = createAsyncThunk('auth/fetchUser', async () => {
-  // TODO: Bootstrap
-  let user = null
+export const fetchUser = createAsyncThunk(
+  'auth/fetchUser',
+  async (_, {dispatch}) => {
+    // TODO: Bootstrap
+    let user = null
 
-  const token = await auth.getToken()
-  if (token) {
-    const data = await client('me', {token})
-    user = data.user
-  }
-  return user
-})
+    const token = await auth.getToken()
+    if (token) {
+      const data = await client('bootstrap', {token})
+      user = data.user
+      dispatch(listItemsAdded(data.listItems))
+
+      const books = data.listItems.map(li => li.book)
+      dispatch(booksAdded(books))
+    }
+    return user
+  },
+)
 
 export const login = createAsyncThunk('auth/login', async form => {
   const user = await auth.login(form)
@@ -88,4 +97,5 @@ export const selectUser = state => state.auth.user
 export const selectAuthToken = state => state.auth.user.token
 export const selectError = state => state.auth.error
 export const selectIsLoading = state => state.auth.status === 'pending'
-export const selectIsFetchingUser = state => state.auth.status === 'fetchingUser'
+export const selectIsFetchingUser = state =>
+  state.auth.status === 'fetchingUser'

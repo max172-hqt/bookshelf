@@ -21,7 +21,7 @@ import {
 } from 'reducers/booksSlice'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 import {selectListItemByBookId, updateListItem} from 'reducers/listItemsSlice'
-import {useAsync} from 'utils/hooks'
+import {unwrapResult} from '@reduxjs/toolkit'
 
 const loadingBook = {
   title: 'Loading...',
@@ -35,16 +35,23 @@ const loadingBook = {
 function BookScreen() {
   const {bookId} = useParams()
   const dispatch = useDispatch()
-  const book =
-    useSelector(state => selectBookById(state, bookId)) ?? loadingBook
-  const listItem = useSelector(state => selectListItemByBookId(state, book.id))
-  const isLoading = useSelector(selectBookFetchingStatus) === 'pending'
 
-  const {title, author, coverImageUrl, publisher, synopsis} = book
+  const getBookById = React.useCallback(async () => {
+    const data = await dispatch(fetchBookById(bookId))
+    if (data.error) {
+      throw new Error("Nice")
+    }
+  }, [bookId, dispatch])
 
   React.useEffect(() => {
-    dispatch(fetchBookById(bookId))
-  }, [dispatch, bookId])
+    getBookById()
+  }, [getBookById])
+
+  const book =
+    useSelector(state => selectBookById(state, bookId)) ?? loadingBook
+  const listItem = useSelector(state => selectListItemByBookId(state, bookId))
+  const isLoading = useSelector(selectBookFetchingStatus) === 'pending'
+  const {title, author, coverImageUrl, publisher, synopsis} = book
 
   return (
     <Profiler id="Book Screen" metadata={{bookId, listItemId: listItem?.id}}>
@@ -124,13 +131,23 @@ function ListItemTimeframe({listItem}) {
 }
 
 function NotesTextarea({listItem}) {
-  const {isLoading, isError, error, run, reset} = useAsync()
-
+  const [updateNoteStatus, setUpdateNoteStatus] = React.useState('idle')
+  const [error, setError] = React.useState()
   const dispatch = useDispatch()
 
-  // TODO: Debounce and loading state
   const handleUpdateListItem = React.useCallback(
-    updates => dispatch(updateListItem(updates)),
+    async updates => {
+      try {
+        setUpdateNoteStatus('pending')
+        const data = await dispatch(updateListItem(updates))
+        unwrapResult(data)
+      } catch (err) {
+        console.log(err)
+        setError(err)
+      } finally {
+        setUpdateNoteStatus('idle')
+      }
+    },
     [dispatch],
   )
 
@@ -139,8 +156,8 @@ function NotesTextarea({listItem}) {
     [handleUpdateListItem],
   )
 
-  function handleNotesChange(e) {
-    debouncedUpdate({id: listItem.id, notes: e.target.value})
+  async function handleNotesChange(e) {
+    await debouncedUpdate({id: listItem.id, notes: e.target.value})
   }
 
   return (
@@ -158,14 +175,14 @@ function NotesTextarea({listItem}) {
         >
           Notes
         </label>
-        {isError ? (
+        {error ? (
           <ErrorMessage
             variant="inline"
             error={error}
             css={{fontSize: '0.7em'}}
           />
         ) : null}
-        {isLoading ? <Spinner /> : null}
+        {updateNoteStatus === 'pending' ? <Spinner /> : null}
       </div>
       <Textarea
         id="notes"
