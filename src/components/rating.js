@@ -38,12 +38,13 @@ function Rating({listItem}) {
   const rootClassName = `list-item-${listItem.id}`
 
   const handleUpdateListItem = async updates => {
-      try {
-        const data = await dispatch(updateListItem(updates))
-        unwrapResult(data)
-      } catch (err) {
-        setError(err)
-      }
+    try {
+      setError(null)
+      const data = await dispatch(updateListItem(updates))
+      unwrapResult(data)
+    } catch (err) {
+      setError(err)
+    }
   }
 
   const stars = Array.from({length: 5}).map((x, i) => {
