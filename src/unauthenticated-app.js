@@ -5,24 +5,34 @@ import * as React from 'react'
 import {Input, Button, Spinner, FormGroup, ErrorMessage} from './components/lib'
 import {Modal, ModalContents, ModalOpenButton} from './components/modal'
 import {Logo} from './components/logo'
-import {login, register, selectError, selectIsLoading} from 'reducers/authSlice'
+import {login, register, selectIsLoading} from 'reducers/authSlice'
+import {fetchListItems} from 'reducers/listItemsSlice'
+
 import {useSelector, useDispatch} from 'react-redux'
+import {unwrapResult} from '@reduxjs/toolkit'
 
 function LoginForm({onSubmit, submitButton}) {
   const dispatch = useDispatch()
   const isLoading = useSelector(selectIsLoading)
-  const error = useSelector(selectError)
+  const [error, setError] = React.useState()
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError(false)
     const {username, password} = event.target.elements
 
-    dispatch(
-      onSubmit({
-        username: username.value,
-        password: password.value,
-      }),
-    )
+    try {
+      const data = await dispatch(
+        onSubmit({
+          username: username.value,
+          password: password.value,
+        }),
+      )
+      unwrapResult(data)
+      await dispatch(fetchListItems())
+    } catch (err) {
+      setError(err)
+    }
   }
 
   return (

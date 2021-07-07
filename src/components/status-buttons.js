@@ -11,7 +11,6 @@ import {
 } from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
 import * as colors from 'styles/colors'
-import {useAsync} from 'utils/hooks'
 import {CircleButton, Spinner} from './lib'
 import {useSelector, useDispatch} from 'react-redux'
 import {
@@ -20,37 +19,45 @@ import {
   removeListItem,
   updateListItem,
 } from 'reducers/listItemsSlice'
+import {unwrapResult} from '@reduxjs/toolkit'
 
 function TooltipButton({label, highlight, onClick, icon, ...rest}) {
-  const {isLoading, isError, error, run, reset} = useAsync()
+  const [isLoading, setIsLoading] = React.useState()
+  const [error, setError] = React.useState()
 
-  function handleClick() {
-    if (isError) {
-      reset()
-    } else {
-      run(onClick())
+  async function handleClick() {
+    try {
+      setError(null)
+      setIsLoading(true)
+      const data = await onClick()
+      unwrapResult(data)
+    } catch (err) {
+      setIsLoading(false)
+      setError(err)
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <Tooltip label={isError ? error.message : label}>
+    <Tooltip label={error ? error.message : label}>
       <CircleButton
         css={{
           backgroundColor: 'white',
           ':hover,:focus': {
             color: isLoading
               ? colors.gray80
-              : isError
+              : error
               ? colors.danger
               : highlight,
           },
         }}
         disabled={isLoading}
         onClick={handleClick}
-        aria-label={isError ? error.message : label}
+        aria-label={error ? error.message : label}
         {...rest}
       >
-        {isLoading ? <Spinner /> : isError ? <FaTimesCircle /> : icon}
+        {isLoading ? <Spinner /> : error ? <FaTimesCircle /> : icon}
       </CircleButton>
     </Tooltip>
   )

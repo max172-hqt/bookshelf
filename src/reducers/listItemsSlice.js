@@ -7,9 +7,18 @@ import {
 import {client} from 'utils/api-client'
 
 const listItemsAdapter = createEntityAdapter()
-const initialState = listItemsAdapter.getInitialState({
-  error: null,
-})
+const initialState = listItemsAdapter.getInitialState({})
+
+export const fetchListItems = createAsyncThunk(
+  'list-items/fetchListItems',
+  async (_, {getState}) => {
+    const token = getState().auth.user?.token
+    const data = await client(`list-items`, {
+      token,
+    })
+    return data.listItems
+  },
+)
 
 export const createListItem = createAsyncThunk(
   'list-items/createListItem',
@@ -56,20 +65,15 @@ export const listItemsSlice = createSlice({
     listItemsAdded: (state, action) => {
       listItemsAdapter.setAll(state, action.payload)
     },
-    errorCleared: (state, action) => {
-      state.error = null
-    },
+    listItemsReset: (state, action) => {
+      listItemsAdapter.removeAll(state)
+    }
   },
   extraReducers: {
     [createListItem.fulfilled]: listItemsAdapter.addOne,
     [removeListItem.fulfilled]: listItemsAdapter.removeOne,
-    [updateListItem.fulfilled]: (state, action) => {
-      state.error = null
-      listItemsAdapter.upsertOne(state, action.payload)
-    },
-    [updateListItem.rejected]: (state, action) => {
-      state.error = action.error
-    },
+    [updateListItem.fulfilled]: listItemsAdapter.upsertOne,
+    [fetchListItems.fulfilled]: listItemsAdapter.setAll,
   },
 })
 
@@ -77,13 +81,11 @@ export default listItemsSlice.reducer
 
 export const {
   selectAll: selectAllListItems,
-  //selectById: selectBookById
 } = listItemsAdapter.getSelectors(state => state.listItems)
 
-export const {listItemsAdded} = listItemsSlice.actions
+export const {listItemsAdded, listItemsReset} = listItemsSlice.actions
 
 export const selectListItemByBookId = createSelector(
   [selectAllListItems, (state, bookId) => bookId],
   (listItems, bookId) => listItems?.find(li => li.bookId === bookId) ?? null,
 )
-export const selectListItemError = state => state.listItems.error

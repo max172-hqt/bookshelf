@@ -46,6 +46,11 @@ export const booksSlice = createSlice({
     booksAdded: (state, action) => {
       booksAdapter.setAll(state, action.payload)
     },
+    booksReset: (state, action) => {
+      booksAdapter.removeAll(state)
+      state.status = 'idle'
+      state.error = null
+    }
   },
   extraReducers: {
     [fetchBooksByQuery.fulfilled]: (state, action) => {
@@ -54,6 +59,7 @@ export const booksSlice = createSlice({
     },
     [fetchBooksByQuery.pending]: (state, action) => {
       state.status = 'pending'
+      state.error = null
     },
     [fetchBooksByQuery.rejected]: (state, action) => {
       state.status = 'failed'
@@ -64,12 +70,16 @@ export const booksSlice = createSlice({
       state.status = 'failed'
       state.error = action.error
     },
+    [fetchBookById.pending]: (state, action) => {
+      state.status = 'pending'
+      state.error = null
+    },
   },
 })
 
 export default booksSlice.reducer
 
-export const {booksAdded} = booksSlice.actions
+export const {booksAdded, booksReset} = booksSlice.actions
 
 export const {selectAll: selectBooks, selectById: selectBookById} =
   booksAdapter.getSelectors(state => state.books)

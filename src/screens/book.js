@@ -14,11 +14,7 @@ import {Rating} from 'components/rating'
 import {Profiler} from 'components/profiler'
 import {StatusButtons} from 'components/status-buttons'
 import {useSelector, useDispatch} from 'react-redux'
-import {
-  fetchBookById,
-  selectBookById,
-  selectBookFetchingStatus,
-} from 'reducers/booksSlice'
+import {fetchBookById, selectBookById, selectError} from 'reducers/booksSlice'
 import bookPlaceholderSvg from 'assets/book-placeholder.svg'
 import {selectListItemByBookId, updateListItem} from 'reducers/listItemsSlice'
 import {unwrapResult} from '@reduxjs/toolkit'
@@ -35,23 +31,36 @@ const loadingBook = {
 function BookScreen() {
   const {bookId} = useParams()
   const dispatch = useDispatch()
+  const book =
+    useSelector(state => selectBookById(state, bookId)) ?? loadingBook
+  const listItem = useSelector(state => selectListItemByBookId(state, bookId))
+  const error = useSelector(selectError)
+
+  const {title, author, coverImageUrl, publisher, synopsis} = book
 
   const getBookById = React.useCallback(async () => {
-    const data = await dispatch(fetchBookById(bookId))
-    if (data.error) {
-      throw new Error("Nice")
-    }
+    await dispatch(fetchBookById(bookId))
   }, [bookId, dispatch])
 
   React.useEffect(() => {
     getBookById()
   }, [getBookById])
 
-  const book =
-    useSelector(state => selectBookById(state, bookId)) ?? loadingBook
-  const listItem = useSelector(state => selectListItemByBookId(state, bookId))
-  const isLoading = useSelector(selectBookFetchingStatus) === 'pending'
-  const {title, author, coverImageUrl, publisher, synopsis} = book
+  if (error) {
+    console.error(error);
+    return (
+      <ErrorMessage
+        error={error}
+        css={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    )
+  }
 
   return (
     <Profiler id="Book Screen" metadata={{bookId, listItemId: listItem?.id}}>
@@ -93,7 +102,9 @@ function BookScreen() {
                   minHeight: 100,
                 }}
               >
-                {isLoading ? null : <StatusButtons book={book} />}
+                {book.isLoadingBook && error ? null : (
+                  <StatusButtons book={book} />
+                )}
               </div>
             </div>
             <div css={{marginTop: 10, minHeight: 46}}>
@@ -106,7 +117,9 @@ function BookScreen() {
             </p>
           </div>
         </div>
-        {!isLoading && listItem ? <NotesTextarea listItem={listItem} /> : null}
+        {!book.isLoadingBook && listItem && !error ? (
+          <NotesTextarea listItem={listItem} />
+        ) : null}
       </div>
     </Profiler>
   )
