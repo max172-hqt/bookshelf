@@ -40,7 +40,7 @@ export const fetchBookById = createAsyncThunk(
 )
 
 export const booksSlice = createSlice({
-  name: 'books',
+  name: 'BOOKS',
   initialState,
   reducers: {
     booksAdded: (state, action) => {

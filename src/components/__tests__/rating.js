@@ -18,9 +18,8 @@ async function renderRating({rating = 0} = {}) {
 }
 
 test('it updates the rating', async () => {
-  const {listItem, user} = await renderRating()
+  const {listItem} = await renderRating()
   const firstStar = screen.getByLabelText('1 star')
-  console.log(user);
 
   userEvent.click(firstStar)
 

@@ -84,7 +84,6 @@ export const {
 } = listItemsAdapter.getSelectors(state => state.listItems)
 
 const {listItemsAdded, listItemsReset} = listItemsSlice.actions
-console.log(listItemsAdded.displayName);
 export {listItemsAdded, listItemsReset}
 
 export const selectListItemByBookId = createSelector(

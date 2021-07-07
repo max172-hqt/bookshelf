@@ -156,7 +156,6 @@ function NotesTextarea({listItem}) {
         const data = await dispatch(updateListItem(updates))
         unwrapResult(data)
       } catch (err) {
-        console.log(err)
         setError(err)
       } finally {
         setUpdateNoteStatus('idle')
@@ -170,8 +169,8 @@ function NotesTextarea({listItem}) {
     [handleUpdateListItem],
   )
 
-  async function handleNotesChange(e) {
-    await debouncedUpdate({id: listItem.id, notes: e.target.value})
+  function handleNotesChange(e) {
+    debouncedUpdate({id: listItem.id, notes: e.target.value})
   }
 
   return (
