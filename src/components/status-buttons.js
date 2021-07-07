@@ -24,6 +24,14 @@ import {unwrapResult} from '@reduxjs/toolkit'
 function TooltipButton({label, highlight, onClick, icon, ...rest}) {
   const [isLoading, setIsLoading] = React.useState()
   const [error, setError] = React.useState()
+  const isMounted = React.useRef(false)
+
+  React.useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+    }
+  })
 
   async function handleClick() {
     try {
@@ -35,7 +43,9 @@ function TooltipButton({label, highlight, onClick, icon, ...rest}) {
       setIsLoading(false)
       setError(err)
     } finally {
-      setIsLoading(false)
+      if (isMounted.current) {
+        setIsLoading(false)
+      }
     }
   }
 

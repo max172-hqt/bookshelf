@@ -43,19 +43,9 @@ function DiscoverBooksScreen() {
   const isSuccess = status === 'succeeded'
 
   const booksResult = useSelector(selectBooks)
-  // TODO: Any better way?
   const books = !isLoading ? booksResult : loadingBooks
   
-  //const {books, error, isLoading, isError, isSuccess} = useBookSearch(query)
-  // TODO: Can we optimize this?
-  //const refetchBookSearchQuery = useRefetchBookSearchQuery()
-
-  //React.useEffect(() => {
-  //return () => refetchBookSearchQuery()
-  //}, [refetchBookSearchQuery])
-  
   React.useEffect(() => {
-    console.log("here");
     dispatch(fetchBooksByQuery(query))
   }, [dispatch, query])
 
