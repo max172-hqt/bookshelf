@@ -31,7 +31,7 @@ function TooltipButton({label, highlight, onClick, icon, ...rest}) {
     return () => {
       isMounted.current = false
     }
-  })
+  }, [])
 
   async function handleClick() {
     try {
