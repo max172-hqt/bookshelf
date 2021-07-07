@@ -151,6 +151,7 @@ function NotesTextarea({listItem}) {
   const handleUpdateListItem = React.useCallback(
     async updates => {
       try {
+        setError(null)
         setUpdateNoteStatus('pending')
         const data = await dispatch(updateListItem(updates))
         unwrapResult(data)
