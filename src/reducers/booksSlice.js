@@ -84,6 +84,5 @@ export const {booksAdded, booksReset} = booksSlice.actions
 export const {selectAll: selectBooks, selectById: selectBookById} =
   booksAdapter.getSelectors(state => state.books)
 
-//export const selectBooks = state => state.books.books
 export const selectError = state => state.books.error
 export const selectBookFetchingStatus = state => state.books.status
