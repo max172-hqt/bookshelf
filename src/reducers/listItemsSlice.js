@@ -10,7 +10,7 @@ const listItemsAdapter = createEntityAdapter()
 const initialState = listItemsAdapter.getInitialState({})
 
 export const fetchListItems = createAsyncThunk(
-  'list-items/fetchListItems',
+  'LIST_ITEMS/FETCH_LIST_ITEMS',
   async (_, {getState}) => {
     const token = getState().auth.user?.token
     const data = await client(`list-items`, {
@@ -21,7 +21,7 @@ export const fetchListItems = createAsyncThunk(
 )
 
 export const createListItem = createAsyncThunk(
-  'list-items/createListItem',
+  'LIST_ITEMS/CREATE_LIST_ITEM',
   async (bookId, {getState}) => {
     const token = getState().auth.user?.token
     const data = await client(`list-items`, {
@@ -33,7 +33,7 @@ export const createListItem = createAsyncThunk(
 )
 
 export const removeListItem = createAsyncThunk(
-  'list-items/removeListItem',
+  'LIST_ITEMS/REMOVE_LIST_ITEM',
   async (id, {getState}) => {
     const token = getState().auth.user?.token
     await client(`list-items/${id}`, {
@@ -45,7 +45,7 @@ export const removeListItem = createAsyncThunk(
 )
 
 export const updateListItem = createAsyncThunk(
-  'list-items/updateListItem',
+  'LIST_ITEMS/UPDATE_LIST_ITEM',
   async (updates, {getState}) => {
     const token = getState().auth.user?.token
     const data = await client(`list-items/${updates.id}`, {
@@ -59,7 +59,7 @@ export const updateListItem = createAsyncThunk(
 )
 
 export const listItemsSlice = createSlice({
-  name: 'list-items',
+  name: 'LIST_ITEMS',
   initialState,
   reducers: {
     listItemsAdded: (state, action) => {
@@ -67,7 +67,7 @@ export const listItemsSlice = createSlice({
     },
     listItemsReset: (state, action) => {
       listItemsAdapter.removeAll(state)
-    }
+    },
   },
   extraReducers: {
     [createListItem.fulfilled]: listItemsAdapter.addOne,
@@ -83,7 +83,9 @@ export const {
   selectAll: selectAllListItems,
 } = listItemsAdapter.getSelectors(state => state.listItems)
 
-export const {listItemsAdded, listItemsReset} = listItemsSlice.actions
+const {listItemsAdded, listItemsReset} = listItemsSlice.actions
+console.log(listItemsAdded.displayName);
+export {listItemsAdded, listItemsReset}
 
 export const selectListItemByBookId = createSelector(
   [selectAllListItems, (state, bookId) => bookId],

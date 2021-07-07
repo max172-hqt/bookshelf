@@ -36,14 +36,20 @@ async function loginAsUser(userProperties) {
   return authUser
 }
 
-const waitForLoadingToFinish = () =>
-  waitForElementToBeRemoved(
-    () => [
-      ...screen.queryAllByLabelText(/loading/i),
-      ...screen.queryAllByText(/loading/i),
-    ],
-    {timeout: 4000},
-  )
+const waitForLoadingToFinish = async () => {
+  if (
+    screen.queryAllByLabelText(/loading/i).length > 0 ||
+    screen.queryAllByText(/loading/i).length > 0
+  ) {
+    await waitForElementToBeRemoved(
+      () => [
+        ...screen.queryAllByLabelText(/loading/i),
+        ...screen.queryAllByText(/loading/i),
+      ],
+      {timeout: 4000},
+    )
+  }
+}
 
 export * from '@testing-library/react'
 export {render, userEvent, loginAsUser, waitForLoadingToFinish}

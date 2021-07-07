@@ -13,7 +13,7 @@ const initialState = booksAdapter.getInitialState({
 })
 
 export const fetchBooksByQuery = createAsyncThunk(
-  'books/fetchBooksByQuery',
+  'BOOKS/FETCH_BOOKS_BY_QUERY',
   async (query, {getState}) => {
     const token = getState().auth.user?.token
     const data = await client(`books?query=${encodeURIComponent(query)}`, {
@@ -25,7 +25,7 @@ export const fetchBooksByQuery = createAsyncThunk(
 )
 
 export const fetchBookById = createAsyncThunk(
-  'books/fetchBookById',
+  'BOOKS/FETCH_BOOK_BY_ID',
   async (bookId, {getState}) => {
     if (getState().books.ids.includes(bookId)) {
       return getState().books.entities[bookId]

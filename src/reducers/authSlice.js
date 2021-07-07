@@ -10,7 +10,7 @@ const initialState = {
 }
 
 export const fetchUser = createAsyncThunk(
-  'auth/fetchUser',
+  'AUTH/FETCH_USER',
   async (_, {dispatch}) => {
     let user = null
 
@@ -27,21 +27,18 @@ export const fetchUser = createAsyncThunk(
   },
 )
 
-export const login = createAsyncThunk(
-  'auth/login',
-  async (form, {dispatch}) => {
-    const user = await auth.login(form)
-    return user
-  },
-)
+export const login = createAsyncThunk('AUTH/LOGIN', async form => {
+  const user = await auth.login(form)
+  return user
+})
 
-export const register = createAsyncThunk('auth/register', async form => {
+export const register = createAsyncThunk('AUTH/REGISTER', async form => {
   const user = await auth.register(form)
   return user
 })
 
 export const logout = createAsyncThunk(
-  'auth/logout',
+  'AUTH/LOGOUT',
   async (form, {dispatch}) => {
     await auth.logout(form)
     dispatch(listItemsReset())
