@@ -16,12 +16,17 @@ export const fetchUser = createAsyncThunk(
 
     const token = await auth.getToken()
     if (token) {
-      const data = await client('bootstrap', {token})
-      user = data.user
-      dispatch(listItemsAdded(data.listItems))
-
-      const books = data.listItems.map(li => li.book)
-      dispatch(booksAdded(books))
+      try {
+        const data = await client('bootstrap', {token})
+        user = data.user
+        // Populate store using bootstrap response
+        dispatch(listItemsAdded(data.listItems))
+        const books = data.listItems.map(li => li.book)
+        dispatch(booksAdded(books))
+      } catch (err) {
+        // Handle case invalid token, force logging out
+        dispatch(logout())
+      }
     }
     return user
   },

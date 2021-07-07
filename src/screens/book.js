@@ -11,7 +11,6 @@ import * as mq from 'styles/media-queries'
 import * as colors from 'styles/colors'
 import {Spinner, Textarea, ErrorMessage} from 'components/lib'
 import {Rating} from 'components/rating'
-import {Profiler} from 'components/profiler'
 import {StatusButtons} from 'components/status-buttons'
 import {useSelector, useDispatch} from 'react-redux'
 import {fetchBookById, selectBookById, selectError} from 'reducers/booksSlice'
@@ -63,7 +62,6 @@ function BookScreen() {
   }
 
   return (
-    <Profiler id="Book Screen" metadata={{bookId, listItemId: listItem?.id}}>
       <div>
         <div
           css={{
@@ -121,7 +119,6 @@ function BookScreen() {
           <NotesTextarea listItem={listItem} />
         ) : null}
       </div>
-    </Profiler>
   )
 }
 

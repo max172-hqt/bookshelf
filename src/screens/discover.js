@@ -7,7 +7,6 @@ import {FaSearch, FaTimes} from 'react-icons/fa'
 import * as colors from 'styles/colors'
 import {BookRow} from 'components/book-row'
 import {BookListUL, Spinner, Input} from 'components/lib'
-import {Profiler} from 'components/profiler'
 import {
   selectBooks,
   selectError,
@@ -44,7 +43,7 @@ function DiscoverBooksScreen() {
 
   const booksResult = useSelector(selectBooks)
   const books = !isLoading ? booksResult : loadingBooks
-  
+
   React.useEffect(() => {
     dispatch(fetchBooksByQuery(query))
   }, [dispatch, query])
@@ -114,18 +113,13 @@ function DiscoverBooksScreen() {
           </div>
         )}
         {books.length ? (
-          <Profiler
-            id="Discover Books Screen Book List"
-            metadata={{query, bookCount: books.length}}
-          >
-            <BookListUL css={{marginTop: 20}}>
-              {books.map(book => (
-                <li key={book.id} aria-label={book.title}>
-                  <BookRow key={book.id} book={book} />
-                </li>
-              ))}
-            </BookListUL>
-          </Profiler>
+          <BookListUL css={{marginTop: 20}}>
+            {books.map(book => (
+              <li key={book.id} aria-label={book.title}>
+                <BookRow key={book.id} book={book} />
+              </li>
+            ))}
+          </BookListUL>
         ) : queried ? (
           <div css={{marginTop: 20, fontSize: '1.2em', textAlign: 'center'}}>
             {isLoading ? (
