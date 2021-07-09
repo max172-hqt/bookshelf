@@ -4,7 +4,7 @@ import {
   createAsyncThunk,
   createEntityAdapter,
 } from '@reduxjs/toolkit'
-import {client} from 'utils/api-client'
+import {useAuthClient} from './authSlice'
 
 const listItemsAdapter = createEntityAdapter()
 const initialState = listItemsAdapter.getInitialState({})
@@ -12,10 +12,8 @@ const initialState = listItemsAdapter.getInitialState({})
 export const fetchListItems = createAsyncThunk(
   'LIST_ITEMS/FETCH_LIST_ITEMS',
   async (_, {getState}) => {
-    const token = getState().auth.user?.token
-    const data = await client(`list-items`, {
-      token,
-    })
+    const client = useAuthClient(getState())
+    const data = await client(`list-items`)
     return data.listItems
   },
 )
@@ -23,9 +21,8 @@ export const fetchListItems = createAsyncThunk(
 export const createListItem = createAsyncThunk(
   'LIST_ITEMS/CREATE_LIST_ITEM',
   async (bookId, {getState}) => {
-    const token = getState().auth.user?.token
+    const client = useAuthClient(getState())
     const data = await client(`list-items`, {
-      token,
       data: {bookId},
     })
     return data.listItem
@@ -34,10 +31,9 @@ export const createListItem = createAsyncThunk(
 
 export const removeListItem = createAsyncThunk(
   'LIST_ITEMS/REMOVE_LIST_ITEM',
-  async (id, {getState}) => {
-    const token = getState().auth.user?.token
+  async (id, { getState }) => {
+    const client = useAuthClient(getState())
     await client(`list-items/${id}`, {
-      token,
       method: 'DELETE',
     })
     return id
@@ -47,9 +43,8 @@ export const removeListItem = createAsyncThunk(
 export const updateListItem = createAsyncThunk(
   'LIST_ITEMS/UPDATE_LIST_ITEM',
   async (updates, {getState}) => {
-    const token = getState().auth.user?.token
+    const client = useAuthClient(getState())
     const data = await client(`list-items/${updates.id}`, {
-      token,
       method: 'PUT',
       data: updates,
     })
@@ -79,9 +74,9 @@ export const listItemsSlice = createSlice({
 
 export default listItemsSlice.reducer
 
-export const {
-  selectAll: selectAllListItems,
-} = listItemsAdapter.getSelectors(state => state.listItems)
+export const {selectAll: selectAllListItems} = listItemsAdapter.getSelectors(
+  state => state.listItems,
+)
 
 const {listItemsAdded, listItemsReset} = listItemsSlice.actions
 export {listItemsAdded, listItemsReset}

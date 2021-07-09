@@ -13,7 +13,6 @@ export const fetchUser = createAsyncThunk(
   'AUTH/FETCH_USER',
   async (_, {dispatch}) => {
     let user = null
-
     const token = await auth.getToken()
     if (token) {
       try {
@@ -100,3 +99,8 @@ export const selectAuthToken = state => state.auth.user.token
 export const selectIsLoading = state => state.auth.status === 'pending'
 export const selectIsFetchingUser = state =>
   state.auth.status === 'fetchingUser'
+
+export const useAuthClient = (state) => {
+  const token = state.auth.user?.token
+  return (endpoint, config) => client(endpoint, {...config, token})
+}

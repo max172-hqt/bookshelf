@@ -3,7 +3,7 @@ import {
   createAsyncThunk,
   createEntityAdapter,
 } from '@reduxjs/toolkit'
-import {client} from 'utils/api-client'
+import {useAuthClient} from './authSlice'
 
 const booksAdapter = createEntityAdapter()
 
@@ -15,10 +15,8 @@ const initialState = booksAdapter.getInitialState({
 export const fetchBooksByQuery = createAsyncThunk(
   'BOOKS/FETCH_BOOKS_BY_QUERY',
   async (query, {getState}) => {
-    const token = getState().auth.user?.token
-    const data = await client(`books?query=${encodeURIComponent(query)}`, {
-      token,
-    })
+    const client = useAuthClient(getState())
+    const data = await client(`books?query=${encodeURIComponent(query)}`)
 
     return data.books
   },
@@ -27,14 +25,13 @@ export const fetchBooksByQuery = createAsyncThunk(
 export const fetchBookById = createAsyncThunk(
   'BOOKS/FETCH_BOOK_BY_ID',
   async (bookId, {getState}) => {
-    if (getState().books.ids.includes(bookId)) {
-      return getState().books.entities[bookId]
+    const state = getState()
+    const client = useAuthClient(state)
+    if (state.books.ids.includes(bookId)) {
+      return state.books.entities[bookId]
     }
 
-    const token = getState().auth.user?.token
-    const data = await client(`books/${bookId}`, {
-      token,
-    })
+    const data = await client(`books/${bookId}`)
     return data.book
   },
 )
@@ -50,7 +47,7 @@ export const booksSlice = createSlice({
       booksAdapter.removeAll(state)
       state.status = 'idle'
       state.error = null
-    }
+    },
   },
   extraReducers: {
     [fetchBooksByQuery.fulfilled]: (state, action) => {
