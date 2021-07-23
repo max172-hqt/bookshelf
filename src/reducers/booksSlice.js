@@ -5,6 +5,13 @@ import {
 } from '@reduxjs/toolkit'
 import {useAuthClient} from './authSlice'
 
+const BooksStatus = {
+  IDLE: 'IDLE',
+  FAILED: 'FAILED',
+  SUCCESS: 'SUCCESS',
+  PENDING: 'PENDING',
+}
+
 const booksAdapter = createEntityAdapter()
 
 const initialState = booksAdapter.getInitialState({
@@ -45,30 +52,30 @@ export const booksSlice = createSlice({
     },
     booksReset: (state, action) => {
       booksAdapter.removeAll(state)
-      state.status = 'idle'
+      state.status = BooksStatus.IDLE
       state.error = null
     },
   },
   extraReducers: {
     [fetchBooksByQuery.fulfilled]: (state, action) => {
-      state.status = 'succeeded'
+      state.status = BooksStatus.SUCCESS
       booksAdapter.setAll(state, action.payload)
     },
     [fetchBooksByQuery.pending]: (state, action) => {
-      state.status = 'pending'
+      state.status = BooksStatus.PENDING
       state.error = null
     },
     [fetchBooksByQuery.rejected]: (state, action) => {
-      state.status = 'failed'
+      state.status = BooksStatus.FAILED
       state.error = action.error
     },
     [fetchBookById.fulfilled]: booksAdapter.addOne,
     [fetchBookById.rejected]: (state, action) => {
-      state.status = 'failed'
+      state.status = BooksStatus.FAILED
       state.error = action.error
     },
     [fetchBookById.pending]: (state, action) => {
-      state.status = 'pending'
+      state.status = BooksStatus.PENDING
       state.error = null
     },
   },

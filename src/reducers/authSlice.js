@@ -4,6 +4,13 @@ import {booksAdded, booksReset} from './booksSlice'
 import {client} from 'utils/api-client'
 import * as auth from 'auth-provider'
 
+const AuthenticatedStatus = {
+  UNAUTHENTICATED: 'UNAUTHENTICATED',
+  FETCHING_USER: 'FETCHING_USER',
+  PENDING: 'PENDING',
+  SUCCESS: 'SUCCESS',
+}
+
 const initialState = {
   user: null,
   status: 'unauthenticated',
@@ -41,14 +48,11 @@ export const register = createAsyncThunk('AUTH/REGISTER', async form => {
   return user
 })
 
-export const logout = createAsyncThunk(
-  'AUTH/LOGOUT',
-  async (form, {dispatch}) => {
-    await auth.logout(form)
-    dispatch(listItemsReset())
-    dispatch(booksReset())
-  },
-)
+export const logout = createAsyncThunk('AUTH/LOGOUT', async (_, {dispatch}) => {
+  await auth.logout()
+  dispatch(listItemsReset())
+  dispatch(booksReset())
+})
 
 export const authSlice = createSlice({
   name: 'AUTH',
@@ -56,37 +60,37 @@ export const authSlice = createSlice({
   reducers: {},
   extraReducers: {
     [fetchUser.fulfilled]: (state, action) => {
-      state.status = 'authenticated'
+      state.status = AuthenticatedStatus.SUCCESS
       state.user = action.payload
     },
     [fetchUser.pending]: (state, action) => {
-      state.status = 'fetchingUser'
+      state.status = AuthenticatedStatus.FETCHING_USER
     },
     // Login
     [login.fulfilled]: (state, action) => {
-      state.status = 'authenticated'
+      state.status = AuthenticatedStatus.SUCCESS
       state.user = action.payload
     },
     [login.pending]: (state, action) => {
-      state.status = 'pending'
+      state.status = AuthenticatedStatus.PENDING
     },
     [login.rejected]: (state, action) => {
-      state.status = 'failed'
+      state.status = AuthenticatedStatus.UNAUTHENTICATED
     },
     // Register
     [register.fulfilled]: (state, action) => {
-      state.status = 'authenticated'
+      state.status = AuthenticatedStatus.SUCCESS
       state.user = action.payload
     },
     [register.rejected]: (state, action) => {
-      state.status = 'failed'
+      state.status = AuthenticatedStatus.UNAUTHENTICATED
     },
     [register.pending]: (state, action) => {
-      state.status = 'pending'
+      state.status = AuthenticatedStatus.PENDING
     },
     // Logout
     [logout.fulfilled]: (state, action) => {
-      state.status = 'unauthenticated'
+      state.status = AuthenticatedStatus.SUCCESS
       state.user = null
     },
   },
@@ -96,11 +100,11 @@ export default authSlice.reducer
 
 export const selectUser = state => state.auth.user
 export const selectAuthToken = state => state.auth.user.token
-export const selectIsLoading = state => state.auth.status === 'pending'
+export const selectIsLoading = state => state.auth.status === AuthenticatedStatus.PENDING
 export const selectIsFetchingUser = state =>
-  state.auth.status === 'fetchingUser'
+  state.auth.status === AuthenticatedStatus.FETCHING_USER
 
-export const useAuthClient = (state) => {
+export const useAuthClient = state => {
   const token = state.auth.user?.token
   return (endpoint, config) => client(endpoint, {...config, token})
 }
