@@ -15,7 +15,7 @@ const BooksStatus = {
 const booksAdapter = createEntityAdapter()
 
 const initialState = booksAdapter.getInitialState({
-  status: 'idle',
+  status: BooksStatus.IDLE,
   error: null,
 })
 
