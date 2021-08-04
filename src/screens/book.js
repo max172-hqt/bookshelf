@@ -6,25 +6,62 @@ import debounceFn from 'debounce-fn'
 import {FaRegCalendarAlt} from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
 import {useParams} from 'react-router-dom'
-import {useBook} from 'utils/books'
 import {formatDate} from 'utils/misc'
-import {useListItem, useUpdateListItem} from 'utils/list-items'
 import * as mq from 'styles/media-queries'
 import * as colors from 'styles/colors'
 import {Spinner, Textarea, ErrorMessage} from 'components/lib'
 import {Rating} from 'components/rating'
-import {Profiler} from 'components/profiler'
 import {StatusButtons} from 'components/status-buttons'
+import {useSelector, useDispatch} from 'react-redux'
+import {fetchBookById, selectBookById, selectError} from 'reducers/booksSlice'
+import bookPlaceholderSvg from 'assets/book-placeholder.svg'
+import {selectListItemByBookId, updateListItem} from 'reducers/listItemsSlice'
+import {unwrapResult} from '@reduxjs/toolkit'
+
+const loadingBook = {
+  title: 'Loading...',
+  author: 'loading...',
+  coverImageUrl: bookPlaceholderSvg,
+  publisher: 'Loading Publishing',
+  synopsis: 'Loading...',
+  loadingBook: true,
+}
 
 function BookScreen() {
   const {bookId} = useParams()
-  const book = useBook(bookId)
-  const listItem = useListItem(bookId)
+  const dispatch = useDispatch()
+  const book =
+    useSelector(state => selectBookById(state, bookId)) ?? loadingBook
+  const listItem = useSelector(state => selectListItemByBookId(state, bookId))
+  const error = useSelector(selectError)
 
   const {title, author, coverImageUrl, publisher, synopsis} = book
 
+  const getBookById = React.useCallback(async () => {
+    await dispatch(fetchBookById(bookId))
+  }, [bookId, dispatch])
+
+  React.useEffect(() => {
+    getBookById()
+  }, [getBookById])
+
+  if (error) {
+    console.error(error);
+    return (
+      <ErrorMessage
+        error={error}
+        css={{
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      />
+    )
+  }
+
   return (
-    <Profiler id="Book Screen" metadata={{bookId, listItemId: listItem?.id}}>
       <div>
         <div
           css={{
@@ -63,7 +100,9 @@ function BookScreen() {
                   minHeight: 100,
                 }}
               >
-                {book.loadingBook ? null : <StatusButtons book={book} />}
+                {book.isLoadingBook && error ? null : (
+                  <StatusButtons book={book} />
+                )}
               </div>
             </div>
             <div css={{marginTop: 10, minHeight: 46}}>
@@ -76,11 +115,10 @@ function BookScreen() {
             </p>
           </div>
         </div>
-        {!book.loadingBook && listItem ? (
+        {!book.isLoadingBook && listItem && !error ? (
           <NotesTextarea listItem={listItem} />
         ) : null}
       </div>
-    </Profiler>
   )
 }
 
@@ -103,15 +141,33 @@ function ListItemTimeframe({listItem}) {
 }
 
 function NotesTextarea({listItem}) {
-  const [mutate, {error, isError, isLoading}] = useUpdateListItem()
+  const [updateNoteStatus, setUpdateNoteStatus] = React.useState('idle')
+  const [error, setError] = React.useState()
+  const dispatch = useDispatch()
 
-  const debouncedMutate = React.useMemo(
-    () => debounceFn(mutate, {wait: 300}),
-    [mutate],
+  const handleUpdateListItem = React.useCallback(
+    async updates => {
+      try {
+        setError(null)
+        setUpdateNoteStatus('pending')
+        const data = await dispatch(updateListItem(updates))
+        unwrapResult(data)
+      } catch (err) {
+        setError(err)
+      } finally {
+        setUpdateNoteStatus('idle')
+      }
+    },
+    [dispatch],
+  )
+
+  const debouncedUpdate = React.useMemo(
+    () => debounceFn(handleUpdateListItem, {wait: 300}),
+    [handleUpdateListItem],
   )
 
   function handleNotesChange(e) {
-    debouncedMutate({id: listItem.id, notes: e.target.value})
+    debouncedUpdate({id: listItem.id, notes: e.target.value})
   }
 
   return (
@@ -129,14 +185,14 @@ function NotesTextarea({listItem}) {
         >
           Notes
         </label>
-        {isError ? (
+        {error ? (
           <ErrorMessage
             variant="inline"
             error={error}
             css={{fontSize: '0.7em'}}
           />
         ) : null}
-        {isLoading ? <Spinner /> : null}
+        {updateNoteStatus === 'pending' ? <Spinner /> : null}
       </div>
       <Textarea
         id="notes"

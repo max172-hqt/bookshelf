@@ -10,57 +10,76 @@ import {
   FaTimesCircle,
 } from 'react-icons/fa'
 import Tooltip from '@reach/tooltip'
-import {
-  useListItem,
-  useUpdateListItem,
-  useRemoveListItem,
-  useCreateListItem,
-} from 'utils/list-items'
 import * as colors from 'styles/colors'
-import {useAsync} from 'utils/hooks'
 import {CircleButton, Spinner} from './lib'
+import {useSelector, useDispatch} from 'react-redux'
+import {
+  selectListItemByBookId,
+  createListItem,
+  removeListItem,
+  updateListItem,
+} from 'reducers/listItemsSlice'
+import {unwrapResult} from '@reduxjs/toolkit'
 
 function TooltipButton({label, highlight, onClick, icon, ...rest}) {
-  const {isLoading, isError, error, run, reset} = useAsync()
+  const [isLoading, setIsLoading] = React.useState()
+  const [error, setError] = React.useState()
+  const isMounted = React.useRef(false)
 
-  function handleClick() {
-    if (isError) {
-      reset()
-    } else {
-      run(onClick())
+  React.useEffect(() => {
+    isMounted.current = true
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
+
+  async function handleClick() {
+    try {
+      setError(null)
+      setIsLoading(true)
+      const data = await onClick()
+      unwrapResult(data)
+    } catch (err) {
+      setIsLoading(false)
+      setError(err)
+    } finally {
+      if (isMounted.current) {
+        setIsLoading(false)
+      }
     }
   }
 
   return (
-    <Tooltip label={isError ? error.message : label}>
+    <Tooltip label={error ? error.message : label}>
       <CircleButton
         css={{
           backgroundColor: 'white',
           ':hover,:focus': {
             color: isLoading
               ? colors.gray80
-              : isError
+              : error
               ? colors.danger
               : highlight,
           },
         }}
         disabled={isLoading}
         onClick={handleClick}
-        aria-label={isError ? error.message : label}
+        aria-label={error ? error.message : label}
         {...rest}
       >
-        {isLoading ? <Spinner /> : isError ? <FaTimesCircle /> : icon}
+        {isLoading ? <Spinner /> : error ? <FaTimesCircle /> : icon}
       </CircleButton>
     </Tooltip>
   )
 }
 
 function StatusButtons({book}) {
-  const listItem = useListItem(book.id)
+  const dispatch = useDispatch()
+  const listItem = useSelector(state => selectListItemByBookId(state, book.id))
 
-  const [mutate] = useUpdateListItem({throwOnError: true})
-  const [handleRemoveClick] = useRemoveListItem({throwOnError: true})
-  const [handleAddClick] = useCreateListItem({throwOnError: true})
+  const handleUpdateClick = updates => dispatch(updateListItem(updates))
+  const handleRemoveClick = id => dispatch(removeListItem(id))
+  const handleAddClick = bookId => dispatch(createListItem(bookId))
 
   return (
     <React.Fragment>
@@ -69,14 +88,18 @@ function StatusButtons({book}) {
           <TooltipButton
             label="Mark as unread"
             highlight={colors.yellow}
-            onClick={() => mutate({id: listItem.id, finishDate: null})}
+            onClick={() =>
+              handleUpdateClick({id: listItem.id, finishDate: null})
+            }
             icon={<FaBook />}
           />
         ) : (
           <TooltipButton
             label="Mark as read"
             highlight={colors.green}
-            onClick={() => mutate({id: listItem.id, finishDate: Date.now()})}
+            onClick={() =>
+              handleUpdateClick({id: listItem.id, finishDate: Date.now()})
+            }
             icon={<FaCheckCircle />}
           />
         )
@@ -85,14 +108,14 @@ function StatusButtons({book}) {
         <TooltipButton
           label="Remove from list"
           highlight={colors.danger}
-          onClick={() => handleRemoveClick({id: listItem.id})}
+          onClick={() => handleRemoveClick(listItem.id)}
           icon={<FaMinusCircle />}
         />
       ) : (
         <TooltipButton
           label="Add to list"
           highlight={colors.indigo}
-          onClick={() => handleAddClick({bookId: book.id})}
+          onClick={() => handleAddClick(book.id)}
           icon={<FaPlusCircle />}
         />
       )}

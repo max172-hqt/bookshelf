@@ -2,15 +2,16 @@
 import {jsx} from '@emotion/core'
 
 import {Link} from 'react-router-dom'
-import {useListItem} from 'utils/list-items'
 import * as mq from 'styles/media-queries'
 import * as colors from 'styles/colors'
 import {StatusButtons} from './status-buttons'
 import {Rating} from './rating'
+import {useSelector} from 'react-redux'
+import {selectListItemByBookId} from 'reducers/listItemsSlice'
 
 function BookRow({book}) {
   const {title, author, coverImageUrl} = book
-  const listItem = useListItem(book.id)
+  const listItem = useSelector(state => selectListItemByBookId(state, book.id))
 
   const id = `book-row-book-${book.id}`
 

@@ -5,20 +5,48 @@ import * as React from 'react'
 import Tooltip from '@reach/tooltip'
 import {FaSearch, FaTimes} from 'react-icons/fa'
 import * as colors from 'styles/colors'
-import {useBookSearch, useRefetchBookSearchQuery} from 'utils/books'
 import {BookRow} from 'components/book-row'
 import {BookListUL, Spinner, Input} from 'components/lib'
-import {Profiler} from 'components/profiler'
+import {
+  selectBooks,
+  selectError,
+  selectBookFetchingStatus,
+  fetchBooksByQuery,
+} from 'reducers/booksSlice'
+import {useSelector, useDispatch} from 'react-redux'
+import bookPlaceholderSvg from 'assets/book-placeholder.svg'
+
+const loadingBook = {
+  title: 'Loading...',
+  author: 'loading...',
+  coverImageUrl: bookPlaceholderSvg,
+  publisher: 'Loading Publishing',
+  synopsis: 'Loading...',
+  loadingBook: true,
+}
+
+const loadingBooks = Array.from({length: 10}, (v, index) => ({
+  id: `loading-book-${index}`,
+  ...loadingBook,
+}))
 
 function DiscoverBooksScreen() {
   const [query, setQuery] = React.useState('')
   const [queried, setQueried] = React.useState()
-  const {books, error, isLoading, isError, isSuccess} = useBookSearch(query)
-  const refetchBookSearchQuery = useRefetchBookSearchQuery()
+  const dispatch = useDispatch()
+  const error = useSelector(selectError)
+  const status = useSelector(selectBookFetchingStatus)
+
+  const isLoading = status === 'pending'
+  const isError = status === 'failed'
+  const isSuccess = status === 'succeeded'
+
+  const booksResult = useSelector(selectBooks)
+  const books = !isLoading ? booksResult : loadingBooks
 
   React.useEffect(() => {
-    return () => refetchBookSearchQuery()
-  }, [refetchBookSearchQuery])
+    dispatch(fetchBooksByQuery(query))
+  }, [dispatch, query])
 
   function handleSearchClick(event) {
     event.preventDefault()
@@ -85,18 +113,13 @@ function DiscoverBooksScreen() {
           </div>
         )}
         {books.length ? (
-          <Profiler
-            id="Discover Books Screen Book List"
-            metadata={{query, bookCount: books.length}}
-          >
-            <BookListUL css={{marginTop: 20}}>
-              {books.map(book => (
-                <li key={book.id} aria-label={book.title}>
-                  <BookRow key={book.id} book={book} />
-                </li>
-              ))}
-            </BookListUL>
-          </Profiler>
+          <BookListUL css={{marginTop: 20}}>
+            {books.map(book => (
+              <li key={book.id} aria-label={book.title}>
+                <BookRow key={book.id} book={book} />
+              </li>
+            ))}
+          </BookListUL>
         ) : queried ? (
           <div css={{marginTop: 20, fontSize: '1.2em', textAlign: 'center'}}>
             {isLoading ? (

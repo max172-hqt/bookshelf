@@ -5,21 +5,34 @@ import * as React from 'react'
 import {Input, Button, Spinner, FormGroup, ErrorMessage} from './components/lib'
 import {Modal, ModalContents, ModalOpenButton} from './components/modal'
 import {Logo} from './components/logo'
-import {useAuth} from './context/auth-context'
-import {useAsync} from './utils/hooks'
+import {login, register, selectIsLoading} from 'reducers/authSlice'
+import {fetchListItems} from 'reducers/listItemsSlice'
+
+import {useSelector, useDispatch} from 'react-redux'
+import {unwrapResult} from '@reduxjs/toolkit'
 
 function LoginForm({onSubmit, submitButton}) {
-  const {isLoading, isError, error, run} = useAsync()
-  function handleSubmit(event) {
+  const dispatch = useDispatch()
+  const isLoading = useSelector(selectIsLoading)
+  const [error, setError] = React.useState()
+
+  async function handleSubmit(event) {
     event.preventDefault()
+    setError(false)
     const {username, password} = event.target.elements
 
-    run(
-      onSubmit({
-        username: username.value,
-        password: password.value,
-      }),
-    )
+    try {
+      const data = await dispatch(
+        onSubmit({
+          username: username.value,
+          password: password.value,
+        }),
+      )
+      unwrapResult(data)
+      await dispatch(fetchListItems())
+    } catch (err) {
+      setError(err)
+    }
   }
 
   return (
@@ -54,13 +67,12 @@ function LoginForm({onSubmit, submitButton}) {
           isLoading ? <Spinner css={{marginLeft: 5}} /> : null,
         )}
       </div>
-      {isError ? <ErrorMessage error={error} /> : null}
+      {error ? <ErrorMessage error={error} /> : null}
     </form>
   )
 }
 
 function UnauthenticatedApp() {
-  const {login, register} = useAuth()
   return (
     <div
       css={{

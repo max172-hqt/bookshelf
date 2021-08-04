@@ -2,10 +2,12 @@
 import {jsx} from '@emotion/core'
 
 import * as React from 'react'
-import {useUpdateListItem} from 'utils/list-items'
 import {FaStar} from 'react-icons/fa'
 import * as colors from 'styles/colors'
 import {ErrorMessage} from 'components/lib'
+import {useDispatch} from 'react-redux'
+import {updateListItem} from 'reducers/listItemsSlice'
+import {unwrapResult} from '@reduxjs/toolkit'
 
 const visuallyHiddenCSS = {
   border: '0',
@@ -19,9 +21,9 @@ const visuallyHiddenCSS = {
 }
 
 function Rating({listItem}) {
+  const dispatch = useDispatch()
+  const [error, setError] = React.useState()
   const [isTabbing, setIsTabbing] = React.useState(false)
-
-  const [mutate, {error, isError}] = useUpdateListItem()
 
   React.useEffect(() => {
     function handleKeyDown(event) {
@@ -35,6 +37,16 @@ function Rating({listItem}) {
 
   const rootClassName = `list-item-${listItem.id}`
 
+  const handleUpdateListItem = async updates => {
+    try {
+      setError(null)
+      const data = await dispatch(updateListItem(updates))
+      unwrapResult(data)
+    } catch (err) {
+      setError(err)
+    }
+  }
+
   const stars = Array.from({length: 5}).map((x, i) => {
     const ratingId = `rating-${listItem.id}-${i}`
     const ratingValue = i + 1
@@ -46,9 +58,9 @@ function Rating({listItem}) {
           id={ratingId}
           value={ratingValue}
           checked={ratingValue === listItem.rating}
-          onChange={() => {
-            mutate({id: listItem.id, rating: ratingValue})
-          }}
+          onChange={() =>
+            handleUpdateListItem({id: listItem.id, rating: ratingValue})
+          }
           css={[
             visuallyHiddenCSS,
             {
@@ -101,7 +113,7 @@ function Rating({listItem}) {
       }}
     >
       <span css={{display: 'flex'}}>{stars}</span>
-      {isError ? (
+      {error ? (
         <ErrorMessage
           error={error}
           variant="inline"
